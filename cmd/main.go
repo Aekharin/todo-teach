@@ -21,15 +21,19 @@ func init() {
 }
 
 func main() {
+
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
 	cfg := config.InitialConfig()
+	//cfg ดึงค่าในconfig server,db
 
 	postgresClient, err := newPostgresClient(ctx, cfg) //
 	if err != nil {
 		log.Fatal(err)
 	}
+	//เชื่อมdb
 	defer postgresClient.Close()
 
 	app := initFiber() //เรียกใข้ฟังก์ชัน
@@ -37,6 +41,8 @@ func main() {
 	todoHandler := api.NewTodoHandler(database.NewTodoRepositoryDB(postgresClient))
 
 	app.Post("/create-todo", todoHandler.CreateTodo)
+	app.Get("/read-todo", todoHandler.ReadTodo)
+
 	healthCheck(app, postgresClient)
 
 	log.Printf("Listening on port: %s", cfg.Server.Port)

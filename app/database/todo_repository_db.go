@@ -11,6 +11,7 @@ import (
 
 type TodoRepository interface {
 	CreateTodo(ctx context.Context, createTodoRequest *models.CreateTodoRequest) error
+	ReadTodo(ctx context.Context) (*[]models.ResponseReadtodo, error)
 }
 
 type TodoRepositoryDB struct {
@@ -37,7 +38,7 @@ func (r *TodoRepositoryDB) CreateTodo(ctx context.Context, createTodoRequest *mo
 		}
 	}()
 
-	stmt := `INSERT INTO todo_list (todo_name,is_check)
+	stmt := `INSERT INTO todo_list (activity,status)
         VALUES(@todo_name, @is_check);`
 	args := pgx.NamedArgs{
 		"todo_name": createTodoRequest.TodoName,
@@ -50,4 +51,40 @@ func (r *TodoRepositoryDB) CreateTodo(ctx context.Context, createTodoRequest *mo
 	}
 
 	return err
+}
+
+// ฟังก์ชชั่น read
+func (r *TodoRepositoryDB) ReadTodo(ctx context.Context) (*[]models.ResponseReadtodo, error) {
+
+	queryy := "SELECT tl.id, tl.status, tl.activity FROM todo_list tl;"
+
+	rows, err := r.pool.Query(ctx, queryy)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ResponseReadtodolist []models.ResponseReadtodo
+	for rows.Next() {
+		var ResponseReadtodo models.ResponseReadtodo
+		err := rows.Scan(
+			&ResponseReadtodo.Id,
+			&ResponseReadtodo.IsCheck,
+			&ResponseReadtodo.TodoName,
+			//สนใจตำแหน่ง
+		)
+		if err != nil {
+			return nil, err
+		}
+		ResponseReadtodolist = append(ResponseReadtodolist, ResponseReadtodo)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if len(ResponseReadtodolist) == 0 {
+		return &[]models.ResponseReadtodo{}, nil
+	}
+
+	return &ResponseReadtodolist, nil
 }
