@@ -26,13 +26,13 @@ func main() {
 	defer cancel()
 	cfg := config.InitialConfig()
 
-	postgresClient, err := newPostgresClient(ctx, cfg)
+	postgresClient, err := newPostgresClient(ctx, cfg) //
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresClient.Close()
 
-	app := initFiber()
+	app := initFiber() //เรียกใข้ฟังก์ชัน
 
 	todoHandler := api.NewTodoHandler(database.NewTodoRepositoryDB(postgresClient))
 
@@ -69,7 +69,7 @@ func gracefulShutdown(f *fiber.App) {
 }
 
 func initFiber() *fiber.App {
-	app := fiber.New(
+	app := fiber.New( //สร้างไฟเบอร์
 		fiber.Config{
 			DisableStartupMessage: true,
 			CaseSensitive:         true,
